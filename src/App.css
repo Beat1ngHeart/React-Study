@@ -10,33 +10,28 @@
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
+  display: block;
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+  /*图片默认是inline元素 margin只对块级元素有效 设置为块级元素 */
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+    /* 使用 position 定位，不会影响其他元素 */
+  position: absolute;      /* 绝对定位 */
+  left: 10px;           /* 向左移动 500px */
+  top: 0px;            /* 向上移动 280px */
+  /* 或者使用 relative 相对定位 */
+  /* position: relative;  相对定位 */
+     /*top: 100px;
+     left: 50px; */
+
+  /* margin-left: -500px;      左侧外边距 */
+  /* 影响文件流 同时改变其他组件 */
+
 }
 
 .card {
   padding: 2em;
+  position: absolute;      /* 绝对定位 */
+  left: 100px;           /* 向左移动 500px */
+  top: 0px;            /* 向上移动 280px */
 }
 
-.read-the-docs {
-  color: #888;
-}
