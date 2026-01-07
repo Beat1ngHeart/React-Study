@@ -1,5 +1,6 @@
 import viteLogo from '/juice.jpg'
 import './App.css'
+import ImageUploader from './components/ImageUploader.tsx'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <div className="card">
         <h1>交易</h1>
       </div>
+      <ImageUploader />
     </>
   )
 }
