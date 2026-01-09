@@ -1,0 +1,77 @@
+.home-page {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: #1a1a1a;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #333;
+}
+
+.header h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 2.5rem;
+}
+
+.navigation {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-button {
+  display: block;
+  padding: 3rem 2rem;
+  background-color: #242424;
+  border: 2px solid #333;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #fff;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.nav-button:hover {
+  transform: translateY(-8px);
+  border-color: #646cff;
+  box-shadow: 0 8px 24px rgba(100, 108, 255, 0.3);
+}
+
+.upload-nav:hover {
+  border-color: #4caf50;
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
+}
+
+.products-nav:hover {
+  border-color: #2196f3;
+  box-shadow: 0 8px 24px rgba(33, 150, 243, 0.3);
+}
+
+.nav-button h2 {
+  margin: 0 0 1rem 0;
+  font-size: 2rem;
+  color: #646cff;
+}
+
+.upload-nav h2 {
+  color: #4caf50;
+}
+
+.products-nav h2 {
+  color: #2196f3;
+}
+
+.nav-button p {
+  margin: 0;
+  color: #888;
+  font-size: 1.1rem;
+}
+

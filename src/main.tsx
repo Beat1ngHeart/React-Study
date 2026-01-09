@@ -5,12 +5,16 @@ import { StrictMode } from 'react'
 //开发模式下的额外检查
 import { createRoot } from 'react-dom/client'
 //创建React应用的根节点
+import { BrowserRouter } from 'react-router-dom'
+//导入路由组件
 import './index.css'
 //导入全局样式
 import App from './App.tsx'
 //导入APP组件
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 )

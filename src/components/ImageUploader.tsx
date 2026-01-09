@@ -22,9 +22,6 @@ function ImageUploader()
   const [image, setImage] = useState<string>('')
   const [price, setPrice] = useState<string>('')
   const [products, setProducts] = useState<Product[]>([])
-  const [walletAddress, setWalletAddress] = useState<string>('')
-  const [showWalletModal, setShowWalletModal] = useState<boolean>(false)
-  const [privateKey, setPrivateKey] = useState<string>('')
 
   // 页面加载时从 localStorage 读取数据
   useEffect(() => {
@@ -32,11 +29,7 @@ function ImageUploader()
     if (savedProducts) {
       setProducts(JSON.parse(savedProducts))
     }
-    
-    const savedWallet = localStorage.getItem('walletAddress')
-    if (savedWallet) {
-      setWalletAddress(savedWallet)
-    }
+
   }, [])
   //没有依赖数组 = 每次渲染都执行
   //空数组 = 只在组件挂载时执行一次
@@ -90,43 +83,10 @@ function ImageUploader()
     alert('商品已保存！')
   }
 
-  // 打开钱包弹窗
-  const handleOpenWallet = () => {
-    setShowWalletModal(true)
-  }
-
-  // 关闭钱包弹窗
-  const handleCloseWallet = () => {
-    setShowWalletModal(false)
-    setPrivateKey('')
-  }
-
-  // 绑定钱包
-  const handleBindWallet = () => {
-    if (!privateKey.trim()) {
-      alert('请输入私钥')
-      return
-    }
-
-    // 这里可以添加私钥验证逻辑
-    // 简单示例：生成一个钱包地址（实际应用中应该使用加密库）
-    const address = '0x' + privateKey.slice(0, 20) + '...' + privateKey.slice(-8)
-    
-    setWalletAddress(address)
-    localStorage.setItem('walletAddress', address)
-    localStorage.setItem('privateKey', privateKey) // 注意：实际应用中私钥应该加密存储
-    
-    alert('钱包绑定成功！')
-    handleCloseWallet()
-  }
-
   return (
     <div className="image-uploader">
       <div className="header-section">
         <h2>上传商品</h2>
-        <button onClick={handleOpenWallet} className="wallet-button">
-          {walletAddress ? `钱包: ${walletAddress}` : '绑定钱包'}
-        </button>
       </div>
       
       {/* 上传区域 */}
@@ -169,41 +129,10 @@ function ImageUploader()
       <button onClick={handleSave} className="save-button">
         保存商品
       </button>
-
-      {/* 钱包绑定弹窗 */}
-      {showWalletModal && (
-        <div className="modal-overlay" onClick={handleCloseWallet}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-button" onClick={handleCloseWallet}>
-              ×
-            </button>
-            <h3>绑定钱包</h3>
-            <div className="wallet-form">
-              <label>
-                私钥：
-                <input
-                  type="password"
-                  value={privateKey}
-                  onChange={(e) => setPrivateKey(e.target.value)}
-                  placeholder="请输入私钥"
-                  className="wallet-input"
-                />
-              </label>
-              <div className="wallet-actions">
-                <button onClick={handleBindWallet} className="bind-button">
-                  绑定
-                </button>
-                <button onClick={handleCloseWallet} className="cancel-button">
-                  取消
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
+
 
 export default ImageUploader
 

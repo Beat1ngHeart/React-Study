@@ -1,22 +1,16 @@
-import viteLogo from '/juice.jpg'
+import { Routes, Route } from 'react-router-dom'
 import './App.css'
-import ImageUploader from './components/ImageUploader.tsx'
-import ProductList from './components/ProductList.tsx'
+import HomePage from './pages/HomePage'
+import UploadPage from './pages/UploadPage'
+import ProductsPage from './pages/ProductsPage'
 
 function App() {
   return (
-    <>
-      <div>
-        <a >
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-      </div>
-      <div className="card">
-        <h1>交易</h1>
-      </div>
-      <ImageUploader />
-      <ProductList />
-    </>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/upload" element={<UploadPage />} />
+      <Route path="/products" element={<ProductsPage />} />
+    </Routes>
   )
 }
 
