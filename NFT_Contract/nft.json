@@ -1,0 +1,12 @@
+{
+    "name" : "CyebrpunkEdgerunner",
+    "description" : "Lucy and Davies from Cyberpunk Edgerunners",
+    "image" : "ipfs://QmSygU27qikfD7gCYb2rxjMxAhKeXGr6qU27opGSpyFRk7",
+    "attributes" : [ {
+        "trait_type" : "Character",
+        "value" : "Lucy"
+      }, {
+        "trait_type" : "Character",
+        "value" : "Davies"
+      } ]
+}
