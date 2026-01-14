@@ -7,19 +7,21 @@ export interface IPFSUploadResult {
 }
 
 /**
- * 方法1: 使用 web3.storage 上传到 IPFS
- * 需要 API Token: https://web3.storage/
+ * 通用 Bearer Token 认证上传函数（内部使用）
  */
-export async function uploadToWeb3Storage(file: File, apiToken?: string): Promise<IPFSUploadResult> {
-  if (!apiToken) {
-    throw new Error('需要 Web3.Storage API Token。请访问 https://web3.storage/ 获取')
-  }
-
+async function uploadWithBearerToken(
+  file: File,
+  apiUrl: string,
+  apiToken: string,
+  getCid: (data: any) => string,
+  getUrl: (cid: string) => string,
+  serviceName: string
+): Promise<IPFSUploadResult> {
   const formData = new FormData()
   formData.append('file', file)
 
   try {
-    const response = await fetch('https://api.web3.storage/upload', {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiToken}`,
@@ -32,40 +34,77 @@ export async function uploadToWeb3Storage(file: File, apiToken?: string): Promis
     }
 
     const data = await response.json()
-    const cid = data.cid
-    const url = `https://${cid}.ipfs.w3s.link`
+    const cid = getCid(data)
+    const url = getUrl(cid)
 
     return { cid, url }
   } catch (error) {
-    console.error('Web3.Storage 上传错误:', error)
+    console.error(`${serviceName} 上传错误:`, error)
     throw error
   }
 }
 
 /**
+ * 方法1: 使用 web3.storage 上传到 IPFS
+ * 需要 API Token: https://web3.storage/
+ */
+export async function uploadToWeb3Storage(file: File, apiToken?: string): Promise<IPFSUploadResult> {
+  if (!apiToken) {
+    throw new Error('需要 Web3.Storage API Token。请访问 https://web3.storage/ 获取')
+  }
+
+  return uploadWithBearerToken(
+    file,
+    'https://api.web3.storage/upload',
+    apiToken,
+    (data) => data.cid,
+    (cid) => `https://${cid}.ipfs.w3s.link`,
+    'Web3.Storage'
+  )
+}
+
+/**
  * 方法2: 使用 Pinata 上传到 IPFS
  * 需要 API Key: https://www.pinata.cloud/
+ * 支持两种认证方式：
+ * 1. JWT Token（推荐，更安全）- 使用 pinataJWT
+ * 2. API Key + Secret（传统方式）- 使用 pinataKey + pinataSecret
  */
 export async function uploadToPinata(
   file: File,
-  apiKey: string,
-  apiSecret: string
+  options: {
+    pinataJWT?: string  // JWT Token（推荐）
+    pinataKey?: string  // API Key（传统方式）
+    pinataSecret?: string  // API Secret（传统方式）
+  }
 ): Promise<IPFSUploadResult> {
   const formData = new FormData()
   formData.append('file', file)
 
+  // 构建请求头
+  const headers: Record<string, string> = {}
+  
+  if (options.pinataJWT) {
+    // 使用 JWT Token 认证（推荐方式）
+    headers['Authorization'] = `Bearer ${options.pinataJWT}`
+  } else if (options.pinataKey && options.pinataSecret) {
+    // 使用传统的 API Key + Secret 认证
+    headers['pinata_api_key'] = options.pinataKey
+    headers['pinata_secret_api_key'] = options.pinataSecret
+  } else {
+    throw new Error('需要提供 Pinata JWT Token 或 API Key + Secret')
+  }
+
   try {
     const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
       method: 'POST',
-      headers: {
-        'pinata_api_key': apiKey,
-        'pinata_secret_api_key': apiSecret,
-      },
+      headers,
       body: formData,
     })
 
     if (!response.ok) {
-      throw new Error(`上传失败: ${response.statusText}`)
+      const errorText = await response.text()
+      throw new Error(`上传失败: ${response.statusText} - ${errorText}`)
     }
 
     const data = await response.json()
@@ -135,31 +174,14 @@ export async function uploadToNFTStorage(file: File, apiToken?: string): Promise
     throw new Error('需要 NFT.Storage API Token。请访问 https://nft.storage/ 获取')
   }
 
-  const formData = new FormData()
-  formData.append('file', file)
-
-  try {
-    const response = await fetch('https://api.nft.storage/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiToken}`,
-      },
-      body: formData,
-    })
-
-    if (!response.ok) {
-      throw new Error(`上传失败: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    const cid = data.value.cid
-    const url = `https://${cid}.ipfs.nftstorage.link`
-
-    return { cid, url }
-  } catch (error) {
-    console.error('NFT.Storage 上传错误:', error)
-    throw error
-  }
+  return uploadWithBearerToken(
+    file,
+    'https://api.nft.storage/upload',
+    apiToken,
+    (data) => data.value.cid,
+    (cid) => `https://${cid}.ipfs.nftstorage.link`,
+    'NFT.Storage'
+  )
 }
 
 /**
@@ -171,8 +193,9 @@ export async function uploadImageToIPFS(
   method: 'web3' | 'pinata' | 'nftstorage' | 'public' = 'public',
   credentials?: {
     web3Token?: string
-    pinataKey?: string
-    pinataSecret?: string
+    pinataJWT?: string  // JWT Token（推荐）
+    pinataKey?: string  // API Key（传统方式）
+    pinataSecret?: string  // API Secret（传统方式）
     nftStorageToken?: string
   }
 ): Promise<IPFSUploadResult> {
@@ -184,10 +207,17 @@ export async function uploadImageToIPFS(
       return uploadToWeb3Storage(file, credentials.web3Token)
 
     case 'pinata':
-      if (!credentials?.pinataKey || !credentials?.pinataSecret) {
-        throw new Error('需要 Pinata API Key 和 Secret')
+      // 优先使用 JWT Token，如果没有则使用 API Key + Secret
+      if (credentials?.pinataJWT) {
+        return uploadToPinata(file, { pinataJWT: credentials.pinataJWT })
+      } else if (credentials?.pinataKey && credentials?.pinataSecret) {
+        return uploadToPinata(file, { 
+          pinataKey: credentials.pinataKey, 
+          pinataSecret: credentials.pinataSecret 
+        })
+      } else {
+        throw new Error('需要提供 Pinata JWT Token 或 API Key + Secret')
       }
-      return uploadToPinata(file, credentials.pinataKey, credentials.pinataSecret)
 
     case 'nftstorage':
       if (!credentials?.nftStorageToken) {

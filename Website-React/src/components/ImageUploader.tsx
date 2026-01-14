@@ -56,6 +56,20 @@ function ImageUploader()
     }
   }
 
+  // 获取 Pinata 凭证（从环境变量）
+  const getPinataCredentials = () => {
+    const jwt = import.meta.env.VITE_PINATA_JWT
+    const key = import.meta.env.VITE_PINATA_KEY
+    const secret = import.meta.env.VITE_PINATA_SECRET
+
+    if (jwt) {
+      return { pinataJWT: jwt }
+    } else if (key && secret) {
+      return { pinataKey: key, pinataSecret: secret }
+    }
+    return null
+  }
+
   // 上传图片到 IPFS
   const handleUploadToIPFS = async () => {
     if (!imageFile) {
@@ -65,9 +79,11 @@ function ImageUploader()
 
     setUploading(true)
     try {
-      // 使用公共 IPFS（需要安装 ipfs-http-client）
-      // 或者使用 web3.storage/nft.storage（需要 API token）
-      const result = await uploadImageToIPFS(imageFile, 'public')
+      // 优先使用 Pinata（如果配置了凭证）
+      const pinataCreds = getPinataCredentials()
+      const result = pinataCreds
+        ? await uploadImageToIPFS(imageFile, 'pinata', pinataCreds)
+        : await uploadImageToIPFS(imageFile, 'public')
       
       setIpfsCid(result.cid)
       setImage(result.url) // 使用 IPFS URL 替换 base64
@@ -101,8 +117,11 @@ function ImageUploader()
     if (uploadMethod === 'ipfs' && !ipfsCid && imageFile) {
       setUploading(true)
       try {
-        // 使用公共 IPFS
-        const result = await uploadImageToIPFS(imageFile, 'public')
+        // 优先使用 Pinata（如果配置了凭证）
+        const pinataCreds = getPinataCredentials()
+        const result = pinataCreds
+          ? await uploadImageToIPFS(imageFile, 'pinata', pinataCreds)
+          : await uploadImageToIPFS(imageFile, 'public')
         finalImage = result.url
         finalCid = result.cid
         setIpfsCid(result.cid)
